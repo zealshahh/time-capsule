@@ -61,24 +61,35 @@ def create_capsule():
     if not all(field in data for field in required_fields): 
         return jsonify("Error: Missing required fields!") # fix this syntax later 
     inserted_id = capsule_collection.insert_one(data).inserted_id    
-    return jsonify({"message": "Your capsule was saved!"}), 201  
+    return jsonify({"message": "Your capsule was saved!" }), 201  
 
 # show all capsules  
-@app.route('/my_capsules', methods = ["GET"])  
+@app.route('/my_capsules', methods = ["GET"])  # to run http://127.0.0.1:5000/my_capsules?user_id=xxx
 def user_capsules(): 
     user_id = request.args.get("user_id")
     if not user_id: # if user dne 
-        return jsonify({"error": "Missing user ID!"}), 400 # just add a little 400 for error stuff
+        return jsonify({"error": "Your user ID was not found."}), 400 # just add a little 400 for error stuff
     
     capsule_collection = db["capsules"]
     user_capsules = list(capsule_collection.find({"user_id": user_id}, {"_id": 0}))  # return capsules and get rid of usual mongodb id  
     if not user_capsules:  # if user has no capsules yet 
         return jsonify({"message": "You have no capsules yet!"})
-    return jsonify(user_capsules) # to run http://127.0.0.1:5000/my_capsules?user_id=xxx
+    return jsonify(user_capsules) 
 
-@app.route('/delete_capsule/<capsule_id>', methods=["DELETE"])
+@app.route('/delete_capsule', methods=["DELETE"]) ## test this out later 
 def delete_capsule(capsule_id): 
-    pass 
+    capsule_id = request.json.get("capsule_id")
+    user_id = request.args.get("user_id")
+    if not user_id: 
+        return jsonify({"error": "Your user ID was not found."}), 400
+    capsule_collection = db["capsules"]
+    result = capsule_collection.delete_one({"_id": ObjectId(capsule_id)}) 
+    if result.deleted_count == 0:
+        return jsonify({"error": "capsule not found or already deleted"})
+    user_capsules = list(capsule_collection.find({"user_id": user_id}, {"_id": 0}))  # return capsules and get rid of usual mongodb id  
+    return jsonify(user_capsules)
+    # return jsonify({"message": "Your capsule was successfully deleted!"})
+     
 
 if __name__ == "__main__":
     app.run(debug=True)
