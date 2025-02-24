@@ -75,5 +75,6 @@ def user_capsules():
         return jsonify({"message": "You have no capsules yet!"})
     return jsonify(user_capsules)
 
+
 if __name__ == "__main__":
     app.run(debug=True)
