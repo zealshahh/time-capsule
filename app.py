@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from pymongo import MongoClient
 import requests 
+from bson import ObjectId # store ids as object ID
 
 app = Flask(__name__)
 CLIENT_ID = "15e2ce55d5e94dbb8bd11133b6b997c6"
@@ -27,7 +28,7 @@ def home():
     return render_template('index.html')
 
 # spotify search page and method 
-@app.route('/search_song', methods=["GET"]) 
+@app.route('/search_song', methods=["GET"]) # to run it http://127.0.0.1:5000/search_song?q=No_one_noticed
 def search_songs():  
     query = request.args.get("q")  
     if not query:  
@@ -54,16 +55,16 @@ def search_songs():
 @app.route("/create_capsule", methods=["POST"])
 def create_capsule():
     data = request.get_json()  # retrieves json data
-    if not data:
-        return jsonify({"error: Create a capsule!"}), 400
-    required_fields = ["title", "unlock_date"]
+    if not data: 
+        return jsonify({"error: Create a capsule!"}), 400 
+    required_fields = ["title", "unlock_date"] 
     if not all(field in data for field in required_fields): 
         return jsonify("Error: Missing required fields!") # fix this syntax later 
-    inserted_id = capsule_collection.insert_one(data).inserted_id   
-    return jsonify({"message": "Your capsule was saved!"}), 201
+    inserted_id = capsule_collection.insert_one(data).inserted_id    
+    return jsonify({"message": "Your capsule was saved!"}), 201  
 
-# show all capsules 
-@app.route('/my_capsules', methods = ["GET"]) 
+# show all capsules  
+@app.route('/my_capsules', methods = ["GET"])  
 def user_capsules(): 
     user_id = request.args.get("user_id")
     if not user_id: # if user dne 
@@ -73,8 +74,11 @@ def user_capsules():
     user_capsules = list(capsule_collection.find({"user_id": user_id}, {"_id": 0}))  # return capsules and get rid of usual mongodb id  
     if not user_capsules:  # if user has no capsules yet 
         return jsonify({"message": "You have no capsules yet!"})
-    return jsonify(user_capsules)
+    return jsonify(user_capsules) # to run http://127.0.0.1:5000/my_capsules?user_id=xxx
 
+@app.route('/delete_capsule/<capsule_id>', methods=["DELETE"])
+def delete_capsule(capsule_id): 
+    pass 
 
 if __name__ == "__main__":
     app.run(debug=True)
